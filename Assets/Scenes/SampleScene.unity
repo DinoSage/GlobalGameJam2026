@@ -373,7 +373,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43c4990e97c631648a2a2a425e94d32e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 20
+  acceleration: 40
   maxHorizontalSpeed: 5
 --- !u!61 &716344598
 BoxCollider2D:
