@@ -6,32 +6,19 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float maxSpeed;
-    [SerializeField] private float accelTime; // in seconds
+    [SerializeField] private float acceleration; // in unit / second^2
     
     private Rigidbody2D _rb;
-    private int _horizontalInputScale;
     private Coroutine _moveRoutine;
     
     void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
         Debug.Log(("TEST"));
-        //_rb.velocity = new Vector2(5, 0);
     }
 
     void Update()
     {
-        _horizontalInputScale = 0;
-
-        if (Input.GetKey(KeyCode.A))
-        {
-            _horizontalInputScale -= 1;
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            _horizontalInputScale += 1;
-        }
     }
 
     public void OnMoveX(InputValue inputValue)
@@ -50,21 +37,39 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            _rb.velocity = new Vector2(0, _rb.velocity.y);
+            _moveRoutine = StartCoroutine(Decelerate());
         }
     }
 
 
     IEnumerator Accelerate(float direction)
     {
-        float startTime = Time.time;
-        while (Mathf.Abs(_rb.velocity.x) < maxSpeed)
+        float targetSpeed = Mathf.Sign(direction) * maxSpeed;
+
+        while (!Mathf.Approximately(_rb.velocity.x, targetSpeed))
         {
-            float timeInterpolate = (Time.time -  startTime) / accelTime;
-            float velX = Mathf.Lerp(0, maxSpeed, timeInterpolate);
-            _rb.velocity = new Vector2(direction * velX, _rb.velocity.y);
             yield return null;
+
+            float newX = _rb.velocity.x + acceleration * Time.deltaTime * Mathf.Sign(direction);
+            newX = Mathf.Clamp(newX, -maxSpeed, maxSpeed);
+
+            _rb.velocity = new Vector2(newX, _rb.velocity.y);
         }
+
+        _rb.velocity = new Vector2(targetSpeed, _rb.velocity.y);
     }
-    
+
+    IEnumerator Decelerate()
+    {
+        while (Mathf.Abs(_rb.velocity.x) > 0.01f)
+        {
+            yield return null;
+
+            float newX = _rb.velocity.x - acceleration * Time.deltaTime * Mathf.Sign(_rb.velocity.x);
+            _rb.velocity = new Vector2(newX, _rb.velocity.y);
+        }
+
+        _rb.velocity = new Vector2(0f, _rb.velocity.y);
+    }
+
 }
